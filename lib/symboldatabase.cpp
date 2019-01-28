@@ -1649,6 +1649,10 @@ void Variable::evaluate(const Settings* settings)
         else if (tok->str() == "*") {
             setFlag(fIsPointer, !isArray() || Token::Match(tok->previous(), "( * %name% )"));
             setFlag(fIsConst, false); // Points to const, isn't necessarily const itself
+        } else if (tok->str() == "shared_ptr" || tok->str() == "auto_ptr" || tok->str() == "unique_ptr") {
+            // Add the smart point support in the c++11.
+            // If the variable is % std::shared_ptr<%type%> %var%, then the %var% is a pointer type.
+            setFlag(fIsPointer, true);
         } else if (tok->str() == "&") {
             if (isReference())
                 setFlag(fIsRValueRef, true);
