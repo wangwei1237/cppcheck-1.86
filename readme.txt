@@ -73,6 +73,10 @@ Compiling
         If you want to use --rule and --rule-file then dependencies are needed:
             g++ -o cppcheck -std=c++11 -lpcre -DHAVE_RULES -Ilib -Iexternals/simplecpp -Iexternals/tinyxml cli/*.cpp lib/*.cpp externals/simplecpp/simplecpp.cpp externals/tinyxml/*.cpp
 
+        If you want to use `--conf` then dependencies software yaml are needed, you shoud first install the yaml-cpp. For the Mac:
+            brew install yaml-cpp
+            make CFGDIR=CFGDIR HAVE_RULES=yes CXXFLAGS="-O2 -DNDEBUG -Wall -Wno-sign-compare -Wno-unused-function"
+
     mingw
     =====
         The "LDFLAGS=-lshlwapi" is needed when building with mingw
