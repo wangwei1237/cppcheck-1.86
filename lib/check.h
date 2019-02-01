@@ -53,12 +53,15 @@ public:
     /** This constructor is used when running checks. */
     Check(const std::string &aname, const Tokenizer *tokenizer, const Settings *settings, ErrorLogger *errorLogger)
         : mTokenizer(tokenizer), mSettings(settings), mErrorLogger(errorLogger), mName(aname) {
+            //loadConf(settings->userRuleConfigure);
     }
 
     virtual ~Check() {
         if (!mTokenizer)
             instances().remove(this);
     }
+
+    //virtual void loadConf(const YAML::Node &configure) {}
 
     /** List of registered check classes. This is used by Cppcheck to run checks and generate documentation */
     static std::list<Check *> &instances();

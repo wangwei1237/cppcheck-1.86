@@ -42,22 +42,23 @@ public:
     /** This constructor is used when running checks. */
     CheckTryCatchFunc(const Tokenizer* tokenizer, const Settings* settings, ErrorLogger* errorLogger)
         : Check(myName(), tokenizer, settings, errorLogger) {
-                _load_conf();
+                loadConf(settings->userRuleConfigure);
                 beginpattern = "try";
                 endpattern = "catch";
                 allexceptiontypepattern = ". . .";
     }
     
     void runSimplifiedChecks(const Tokenizer* tokenizer, const Settings* settings,
-            ErrorLogger* errorLogger) {
+            ErrorLogger* errorLogger) override {
         CheckTryCatchFunc checkTryCatchFunc(tokenizer, settings, errorLogger);
         checkTryCatchFunc.wrongUse();
     }
  
     void wrongUse();
-    void getErrorMessages(ErrorLogger* errorLogger, const Settings* settings) const {}
+    void getErrorMessages(ErrorLogger* errorLogger, const Settings* settings) const override {}
+
 private:
-    void _load_conf();
+    void loadConf(const YAML::Node &configure);
     bool is_target(const Token *tok, std::set<std::string>& exception_patterns);
     void report_error_info(const Token* tok);
     void report_warning_info(const Token* tok);
@@ -65,7 +66,15 @@ private:
     bool check_catches_exception_type(const Token* startCatchToken);
     bool check_single_catch_exception_type(const Token* catchToken);
     
-    std::string classInfo() const {
+    bool is_check_filter() {
+        if (_except_info.empty()) {
+            std::cout << "can not find configure for CheckTryCatchFunc, this check will be filter" << std::endl;
+            return true;
+        }
+        return false;
+    }
+
+    std::string classInfo() const override {
         return "function may throw exception.\n"
                "Who use it have to catch exception.\n";
     }

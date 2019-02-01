@@ -1,0 +1,16 @@
+CheckTryCatchFunc:
+  - 
+    class: 'boost ::' 
+    function: 
+      - 'lexical_cast < %name% >'
+      - 'lexical_cast < int >'
+    exception: 
+      - 'boost :: bad_lexical_cast'
+      - 'bad_lexical_cast'
+  - 
+    class: 'bsl :: var :: JsonDeserializer' 
+    function: 
+      - 'deserialize'
+    exception: 
+      - 'bsl :: Exception'
+      - 'std :: exceptrion'

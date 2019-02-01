@@ -80,6 +80,10 @@ bool CheckTryCatchFunc::is_target(const Token *tok, std::set<std::string>& excep
 }
 
 void CheckTryCatchFunc::wrongUse() {
+    if (is_check_filter()) {
+        return;
+    }
+
     const SymbolDatabase* symbolDatabase = mTokenizer->getSymbolDatabase();
     for (const Scope* scope : symbolDatabase->functionScopes) {
         const Token* endToken = scope->bodyEnd;
@@ -189,13 +193,35 @@ bool CheckTryCatchFunc::check_single_catch_exception_type(const Token* catchToke
     return false;
 }
 
-void CheckTryCatchFunc::_load_conf() {
-    sExceptInfo info;
-    info.class_name = std::string("::");
-    info.func_names.insert(std::string("lexical_cast < %name% >"));
-    info.exception_patterns.insert(std::string("boost :: bad_lexical_cast"));
-    info.exception_patterns.insert(std::string("my :: bad_lexical_cast"));
-    _except_info.insert(info);
+/** the format of the configure: 
+ * CheckTryCatchFunc:
+ * -
+ *   class: 'boost ::'
+ *   function: 
+ *.    - 'lexical_cast < %name% >'
+ *   exception:
+ *     - 'boost :: bad_lexical_cast'
+ *     - 'bad_lexical_cast'
+ */
+void CheckTryCatchFunc::loadConf(const YAML::Node &configure) {
+    if (!configure["CheckTryCatchFunc"]) {
+        return;
+    }
+
+    for (const auto& it: configure["CheckTryCatchFunc"]) {
+        sExceptInfo info;
+        info.class_name = it["class"].as<std::string>();
+
+        for (const auto& it_f: it["function"]) {
+            info.func_names.insert(it_f.as<std::string>());
+        }
+
+        for (const auto& it_e: it["exception"]) {
+            info.exception_patterns.insert(it_e.as<std::string>());
+        }
+        
+        _except_info.insert(info);
+    }
 }
 
 void CheckTryCatchFunc::report_error_info(const Token* tok) {
