@@ -1,0 +1,8 @@
+CheckTryCatchFunc:
+  - 
+    class: '::' 
+    function: 
+      - 'lexical_cast < %name% >'
+    exception: 
+      - 'boost :: bad_lexical_cast'
+      - 'bad_lexical_cast'
