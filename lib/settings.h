@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 
+#include <yaml-cpp/yaml.h>
 namespace ValueFlow {
     class Value;
 }
@@ -178,6 +179,9 @@ public:
         Default is 12. (--max-configs=N) */
     unsigned int maxConfigs;
 
+    /** @brief the configure used in the user define CHECK_CLASS.
+        (--conf=check.yaml)*/
+    YAML::Node userRuleConfigure;
     /**
      * @brief Returns true if given id is in the list of
      * enabled extra checks (--enable)

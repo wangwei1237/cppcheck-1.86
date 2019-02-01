@@ -80,7 +80,7 @@ ifeq (clang++, $(findstring clang++,$(CXX)))
     CPPCHK_GLIBCXX_DEBUG=
 endif
 ifndef CXXFLAGS
-    CXXFLAGS=-std=c++0x -O2 -DNDEBUG -Wall -Wno-sign-compare -g
+    CXXFLAGS=-std=c++0x -O2 -DNDEBUG -Wall -Wno-sign-compare -g 
 endif
 
 ifeq (g++, $(findstring g++,$(CXX)))
@@ -100,6 +100,13 @@ ifeq ($(HAVE_RULES),yes)
     else
         LIBS=$(shell pcre-config --libs)
     endif
+endif
+
+# Add the yaml-cpp support
+ifdef LIBS 
+    LIBS += $(shell pkg-config --libs yaml-cpp)
+else
+    LIBS  = $(shell pkg-config --libs yaml-cpp)
 endif
 
 ifndef PREFIX

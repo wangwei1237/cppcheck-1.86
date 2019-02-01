@@ -798,6 +798,16 @@ bool CmdLineParser::parseFromArgs(int argc, const char* const argv[])
                 mShowHelp = true;
                 mExitAfterPrint = true;
                 break;
+            } 
+            // Set the user define scan rule configure.All configure is stored in the mSettings
+            else if (std::strncmp(argv[i], "--conf=", 7) == 0) {
+                try {
+                    mSettings->userRuleConfigure = YAML::LoadFile(7+argv[i]);
+                } catch (...) {
+                    std::string message("cppcheck: error: argument to --conf is not a valid yaml file");
+                    printMessage(message);
+                    return false;
+                }
             }
 
             else {
@@ -876,6 +886,8 @@ void CmdLineParser::printHelp()
               "                         be considered for evaluation.\n"
               "    --config-excludes-file=<file>\n"
               "                         A file that contains a list of config-excludes\n"
+              "    --conf=<file>\n"
+              "                         A yaml format configure file used in the user defined CHECK_CLASS\n"
               "    --dump               Dump xml data for each translation unit. The dump\n"
               "                         files have the extension .dump and contain ast,\n"
               "                         tokenlist, symboldatabase, valueflow.\n"
