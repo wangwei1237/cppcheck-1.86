@@ -154,6 +154,7 @@ LIBOBJ =      $(SRCDIR)/analyzerinfo.o \
               $(SRCDIR)/checkmemoryleak.o \
               $(SRCDIR)/checknullpointer.o \
               $(SRCDIR)/checkother.o \
+              $(SRCDIR)/checkpointerbeforeuse.o \
               $(SRCDIR)/checkpostfixoperator.o \
               $(SRCDIR)/checksizeof.o \
               $(SRCDIR)/checkstl.o \
@@ -412,6 +413,8 @@ $(SRCDIR)/checknullpointer.o: lib/checknullpointer.cpp lib/checknullpointer.h li
 
 $(SRCDIR)/checkother.o: lib/checkother.cpp lib/checkother.h lib/check.h lib/config.h lib/errorlogger.h lib/suppressions.h lib/settings.h lib/importproject.h lib/platform.h lib/utils.h lib/library.h lib/mathlib.h lib/standards.h lib/timer.h lib/token.h lib/valueflow.h lib/tokenize.h lib/tokenlist.h lib/checkuninitvar.h lib/astutils.h lib/symboldatabase.h
 	$(CXX) ${INCLUDE_FOR_LIB} $(CPPFLAGS) $(CFG) $(CXXFLAGS) $(UNDEF_STRICT_ANSI) -c -o $(SRCDIR)/checkother.o $(SRCDIR)/checkother.cpp
+$(SRCDIR)/checkpointerbeforeuse.o: lib/checkpointerbeforeuse.cpp lib/checkpointerbeforeuse.h lib/check.h lib/config.h lib/errorlogger.h lib/suppressions.h lib/settings.h lib/importproject.h lib/platform.h lib/utils.h lib/library.h lib/mathlib.h lib/standards.h lib/timer.h lib/token.h lib/valueflow.h lib/tokenize.h lib/tokenlist.h lib/symboldatabase.h
+	$(CXX) ${INCLUDE_FOR_LIB} $(CPPFLAGS) $(CFG) $(CXXFLAGS) $(UNDEF_STRICT_ANSI) -c -o $(SRCDIR)/checkpointerbeforeuse.o $(SRCDIR)/checkpointerbeforeuse.cpp 
 
 $(SRCDIR)/checkpostfixoperator.o: lib/checkpostfixoperator.cpp lib/checkpostfixoperator.h lib/check.h lib/config.h lib/errorlogger.h lib/suppressions.h lib/settings.h lib/importproject.h lib/platform.h lib/utils.h lib/library.h lib/mathlib.h lib/standards.h lib/timer.h lib/token.h lib/valueflow.h lib/tokenize.h lib/tokenlist.h lib/symboldatabase.h
 	$(CXX) ${INCLUDE_FOR_LIB} $(CPPFLAGS) $(CFG) $(CXXFLAGS) $(UNDEF_STRICT_ANSI) -c -o $(SRCDIR)/checkpostfixoperator.o $(SRCDIR)/checkpostfixoperator.cpp

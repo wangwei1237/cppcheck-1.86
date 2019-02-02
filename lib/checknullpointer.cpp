@@ -181,6 +181,7 @@ bool CheckNullPointer::isPointerDeRef(const Token *tok, bool &unknown)
         return true;
 
     // array access
+    // int a[10];
     if (firstOperand && parent->str() == "[" && (!parent->astParent() || parent->astParent()->str() != "&"))
         return true;
 
