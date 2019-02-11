@@ -66,17 +66,64 @@ void CheckPointerBeforeUse::wrongUse() {
                 continue;
             }
 
-            report_error_info(tok);
-            std::cout << "the unknow value is: " << unknown << std::endl;
+            // skip the std::container variable, but not the smart pointer.
+            bool isContainerType = false;
+            for (const Token *tokType = tok->variable()->typeStartToken();
+                 tokType && tokType != tok->variable()->typeEndToken();
+                 tokType = tokType->next()) {
+
+                auto res = std::find(mFilterContainerType.begin(), mFilterContainerType.end(), tokType->str());
+                if (res != mFilterContainerType.end()){
+                    isContainerType = true;
+                    break;
+                }
+            }
+            if (isContainerType) {
+                continue;
+            }
+
+            if (!isCheckNull(scope, tok)) {
+                report_error_info(tok);
+                //std::cout << "the unknow value is: " << unknown << std::endl; 
+            } 
         }
     }
 }
 
+bool CheckPointerBeforeUse::isCheckNull(const Scope *scope, const Token *tok) {
+    const Token *tok1 = tok;
+    for (; tok1 && tok1 != scope->bodyStart; tok1 = tok1->previous()) {
+        if (tok1->str() == tok->str() && tok1->astParent()) {
+            if (tok1->astParent()->str() == "!") {
+                return true;
+            }
+
+            if ((tok1->astParent()->str() == "!=" || tok1->astParent()->str() == "==") && 
+                (tok1->astParent()->astOperand2()->str() == "NULL" || 
+                 tok1->astParent()->astOperand2()->str() == "nullptr" || 
+                 tok1->astParent()->astOperand1()->str() == "NULL" ||
+                 tok1->astParent()->astOperand1()->str() == "nullptr")) {
+                return true;
+            }
+        }
+            
+    }
+
+    return false;
+}
 
 
 /** the format of the configure: 
  */
 void CheckPointerBeforeUse::loadConf(const YAML::Node &configure) {
+    if (!configure["CheckPointerBeforeUse"]) {
+        return;
+    }
+
+    for (const auto& it_ct: configure["CheckPointerBeforeUse"]["containerType"]) {
+        mFilterContainerType.push_back(it_ct.as<std::string>());
+        //std::cout << it_ct.as<std::string>() << std::endl;
+    }
 }
 
 /**

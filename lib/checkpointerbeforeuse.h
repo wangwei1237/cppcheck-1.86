@@ -70,6 +70,7 @@ private:
      * @return true => there is a dereference
      */
     bool isPointerDeRef(const Token *tok, bool &unknown);
+    bool isCheckNull(const Scope *scope, const Token *tok);
 
     std::string classInfo() const override {
         return "test";
@@ -77,6 +78,9 @@ private:
     static std::string myName() {
         return "CheckPointerBeforeUse";
     }
+
+private:
+    std::vector<std::string> mFilterContainerType;
 };
 /// @}
 //---------------------------------------------------------------------------
