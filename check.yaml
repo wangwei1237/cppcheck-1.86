@@ -3,6 +3,20 @@ CheckTryCatchFunc:
     class: '::' 
     function: 
       - 'lexical_cast < %name% >'
+      - 'b'
     exception: 
       - 'boost :: bad_lexical_cast'
       - 'bad_lexical_cast'
+
+CheckPointerBeforeUse:
+  containerType:
+    - 'vector'
+    - 'set'
+    - 'map'
+    - 'list'
+    - 'KVUint64Float'
+    - 'KVStrInt'
+    - 'KVStrStr'
+    - 'KVUint64Str'
+    - 'KVUint64Int'
+    - 'KVUint64Uint64'
