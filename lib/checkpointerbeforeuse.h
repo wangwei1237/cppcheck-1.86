@@ -55,7 +55,8 @@ private:
     void loadConf(const YAML::Node &configure);
     void report_error_info(const Token* tok);
     void report_warning_info(const Token* tok);
-    
+    bool isSkip(const Token* tok);
+    bool isContainerType(const Token* tok);
     bool is_check_filter() {
         return false;
     }

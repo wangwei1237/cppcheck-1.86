@@ -51,43 +51,57 @@ void CheckPointerBeforeUse::wrongUse() {
     const SymbolDatabase* symbolDatabase = mTokenizer->getSymbolDatabase();
     for (const Scope* scope : symbolDatabase->functionScopes) {
         const Token* endToken = scope->bodyEnd;
-        bool unknown = false;
-
         for (const Token* tok = scope->bodyStart; tok && tok != endToken; tok = tok->next()) {
-            //std::cout << tok->str() << ", " << tok->tokType() << std::endl;
-            //If the variable deferenced, then check.
-            if (!isPointerDeRef(tok, unknown)) {
-                continue;    
-            }
-
-            //If check the variable before deference.
-            // Just check the local pointer variable.
-            if (!tok->variable() || !(tok->variable()->isLocal()) || !(tok->variable()->isPointer())) {
-                continue;
-            }
-
-            // skip the std::container variable, but not the smart pointer.
-            bool isContainerType = false;
-            for (const Token *tokType = tok->variable()->typeStartToken();
-                 tokType && tokType != tok->variable()->typeEndToken();
-                 tokType = tokType->next()) {
-
-                auto res = std::find(mFilterContainerType.begin(), mFilterContainerType.end(), tokType->str());
-                if (res != mFilterContainerType.end()){
-                    isContainerType = true;
-                    break;
-                }
-            }
-            if (isContainerType) {
+            if (isSkip(tok)) {
                 continue;
             }
 
             if (!isCheckNull(scope, tok)) {
                 report_error_info(tok);
-                //std::cout << "the unknow value is: " << unknown << std::endl; 
             } 
         }
     }
+}
+
+bool CheckPointerBeforeUse::isSkip(const Token* tok) {
+    bool unknown = false;
+
+    // S1. 过滤非解引用的变量
+    if (!isPointerDeRef(tok, unknown)) {
+        return true;   
+    }
+
+    // S2. 过滤非变量，非局部变量，非指针变量
+    if (!tok->variable() || !(tok->variable()->isLocal()) || !(tok->variable()->isPointer())) {
+        return true;
+    }
+
+    // S3. 过滤容器类型
+    if (isContainerType(tok)) {
+        return true;
+    }
+
+    return false;
+}
+
+bool CheckPointerBeforeUse::isContainerType(const Token* tok) {
+    bool isContainerType = false;
+    if (!(tok && tok->variable())) {
+        return isContainerType;
+    }
+
+    for (const Token *tokType = tok->variable()->typeStartToken();
+         tokType && tokType != tok->variable()->typeEndToken();
+         tokType = tokType->next()) {
+
+        auto res = std::find(mFilterContainerType.begin(), mFilterContainerType.end(), tokType->str());
+        if (res != mFilterContainerType.end()){
+            isContainerType = true;
+            break;
+        }
+    }
+
+    return isContainerType;
 }
 
 bool CheckPointerBeforeUse::isCheckNull(const Scope *scope, const Token *tok) {

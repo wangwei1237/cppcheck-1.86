@@ -268,7 +268,61 @@ public:
         return mTypeEndToken;
     }
 
-    
+    /**
+     * Format the variable type token between 
+     * mTypeStrartToken and mTypeEndToken to string.
+     *
+     * @return type token in the string format. 
+     */
+    std::string originalTypeString() const {
+        std::string type = "";
+
+        if (nullptr == mTypeStartToken) {
+            return type;
+        }
+
+        for (const Token * t = mTypeStartToken; t != mTypeEndToken; t = t->next()) {
+            type += (type == "" ? t->str() : " " + t->str());
+        }
+
+        type += (" " + mTypeEndToken->str());
+        return type;
+    }
+
+    /**
+     * Handle the iterator type.
+     * E.g.:
+     * std::vector<int> iterator it = vec.begin();
+     * originalTypeString is "std :: vector < int >".
+     * typeString is "int".
+     * For the map<T1, T2> iterator type, the result is "T1 , T2".
+     */
+    std::string typeString() const {
+        std::string type = originalTypeString();
+        if (type.find("iterator") == std::string::npos) {
+            return type;
+        }
+
+        type = "";
+        const Token* left_tok = mTypeStartToken;
+        while (left_tok && left_tok != mTypeEndToken) {
+            if (left_tok->str() == "<" && left_tok->link()) {
+                break;
+            }
+            left_tok = left_tok->next();
+        }
+
+        if (left_tok && left_tok != mTypeEndToken) {
+            const Token* tok2 = left_tok->next();
+            while (tok2 && tok2 != left_tok->link()) {
+                type += (type.empty() ? "" : " ") + tok2->str();
+                tok2 = tok2->next();
+            }
+        }
+
+        return type;    
+    }
+
     /**
      * Get end token of variable declaration
      * E.g.
