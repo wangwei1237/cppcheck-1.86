@@ -20,3 +20,9 @@ CheckPointerBeforeUse:
     - 'KVUint64Str'
     - 'KVUint64Int'
     - 'KVUint64Uint64'
+  needSkipType:
+    -
+      type: 'test'
+      notSikpFunction:
+        - 'test'
+        - 'test1'

@@ -51,6 +51,13 @@ void CheckPointerBeforeUse::wrongUse() {
     const SymbolDatabase* symbolDatabase = mTokenizer->getSymbolDatabase();
     for (const Scope* scope : symbolDatabase->functionScopes) {
         const Token* endToken = scope->bodyEnd;
+        std::vector<std::string> vecContinousPointer;
+        
+        getContinousPointer(scope, vecContinousPointer);
+        for(std::string i: vecContinousPointer) {
+            std::cout << i << std::endl;
+        }
+
         for (const Token* tok = scope->bodyStart; tok && tok != endToken; tok = tok->next()) {
             if (isSkip(tok)) {
                 continue;
@@ -61,6 +68,69 @@ void CheckPointerBeforeUse::wrongUse() {
             } 
         }
     }
+}
+
+/**
+ * E.g.:
+ *     1. a->b->c
+ *     2. a->b()->c()->d
+ */
+void CheckPointerBeforeUse::getContinousPointer(const Scope* scope, 
+        std::vector<std::string> &continuous_pointer) {
+    for (const Token* tok = scope->bodyStart; tok && tok != scope->bodyEnd; tok = tok->next()) {
+        if (isSkip(tok)) {
+            continue;
+        }
+
+        // scane from the token to the parent token in the ast.
+        // If find ->, then the token before -> should check NULL.
+        std::string continousPointerString = "";
+        const Token* astParentTok = tok->astParent();
+        while (astParentTok) {
+            //tok = astParentTok;
+
+            if (astParentTok->originalName() == "->") {
+                if (!continousPointerString.empty()) { // for the a->b->c, skip the a->b check.
+                    continuous_pointer.push_back(continousPointerString);
+                }
+            }
+
+            if (astParentTok->str() == "(") {
+                continousPointerString += (" " + getTokenString(astParentTok, astParentTok->link()));
+                //tok = astParentTok->link();
+                //std::cout << "---" << getTokenString(astParentTok, astParentTok->link()) << std::endl;
+            } else if (astParentTok->str() == "."){
+                // 中序遍历
+                if (continousPointerString == "") {
+                    continousPointerString += astParentTok->astOperand1()->str();
+                }
+                if (!astParentTok->originalName().empty()) {
+                    continousPointerString += (" " + astParentTok->originalName());
+                } else {
+                    continousPointerString += (" " + astParentTok->str());
+                }
+                
+                continousPointerString += (" " + astParentTok->astOperand2()->str());
+            }
+
+            astParentTok = astParentTok->astParent();
+        }
+    }
+
+}
+
+std::string CheckPointerBeforeUse::getTokenString(const Token* begin, const Token* end) const {
+    std::string tokString = "";
+    if (!begin || !end) {
+        return tokString;
+    }
+
+    for (const Token* tok = begin; tok && tok != end; tok=tok->next()) {
+        tokString += (tokString == "" ? tok->str() : " " + tok->str());
+    }
+    tokString += (" " + end->str());
+
+    return tokString;
 }
 
 bool CheckPointerBeforeUse::isSkip(const Token* tok) {

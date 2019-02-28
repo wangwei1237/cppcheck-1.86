@@ -60,7 +60,8 @@ private:
     bool is_check_filter() {
         return false;
     }
-
+    void getContinousPointer(const Scope* scope, std::vector<std::string> &continuous_pointer);
+    std::string getTokenString(const Token* begin, const Token* end) const;
     /**
      * Is there a pointer dereference? Everything that should result in
      * a nullpointer dereference error message will result in a true
