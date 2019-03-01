@@ -221,7 +221,9 @@ void CheckPointerBeforeUse::checkContinousNull(const Scope *scope,
         for (auto item : continuous_pointer) {
             const Token *tok = scope->bodyStart;
             bool isCheck = false;
-            for (; tok && tok != scope->bodyEnd; tok = tok->next()) {
+            std::map<int, Token*> m = continuous_pointer_token[i];
+
+            for (; tok && tok != m[1]; tok = tok->next()) {
                 if (Token::Match(tok, ("! " + item).c_str()) || 
                     Token::Match(tok, ("NULL == " + item).c_str()) ||
                     Token::Match(tok, (item + " == NULL").c_str()) ||
@@ -237,7 +239,6 @@ void CheckPointerBeforeUse::checkContinousNull(const Scope *scope,
             }
 
             if (!isCheck) {
-                std::map<int, Token*> m = continuous_pointer_token[i];
                 reportError(
                     m[0],
                     Severity::error,
