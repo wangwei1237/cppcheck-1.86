@@ -21,6 +21,8 @@
 #ifndef checkpointerbeforeuseH
 #define checkpointerbeforeuseH
 //---------------------------------------------------------------------------
+#include <map>
+#include <utility>
 
 #include "config.h"
 #include "check.h"
@@ -60,7 +62,10 @@ private:
     bool is_check_filter() {
         return false;
     }
-    void getContinousPointer(const Scope* scope, std::vector<std::string> &continuous_pointer);
+    void getContinousPointer(const Scope* scope, 
+        std::vector<std::string> &continuous_pointer,
+        std::vector<std::string> &continuous_pointer_original,
+        std::vector<std::map<int, Token*>> &continuous_pointer_token);
     std::string getTokenString(const Token* begin, const Token* end) const;
     /**
      * Is there a pointer dereference? Everything that should result in
@@ -73,7 +78,10 @@ private:
      */
     bool isPointerDeRef(const Token *tok, bool &unknown);
     bool isCheckNull(const Scope *scope, const Token *tok);
-
+    void checkContinousNull(const Scope *scope, 
+        std::vector<std::string> &continuous_pointer,
+        std::vector<std::string> &continuous_pointer_original,
+        std::vector<std::map<int, Token*>> &continuous_pointer_token);
     std::string classInfo() const override {
         return "test";
     }

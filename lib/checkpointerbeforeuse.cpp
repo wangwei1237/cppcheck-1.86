@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <map>
 
 #include "symboldatabase.h"
 #include "checkpointerbeforeuse.h"
@@ -52,12 +53,9 @@ void CheckPointerBeforeUse::wrongUse() {
     for (const Scope* scope : symbolDatabase->functionScopes) {
         const Token* endToken = scope->bodyEnd;
         std::vector<std::string> vecContinousPointer;
-        
-        getContinousPointer(scope, vecContinousPointer);
-        for(std::string i: vecContinousPointer) {
-            std::cout << i << std::endl;
-        }
-
+        std::vector<std::map<int, Token*>> vecContinousPointerTok;
+        std::vector<std::string> vecCPOriginal;
+        getContinousPointer(scope, vecContinousPointer, vecCPOriginal, vecContinousPointerTok);
         for (const Token* tok = scope->bodyStart; tok && tok != endToken; tok = tok->next()) {
             if (isSkip(tok)) {
                 continue;
@@ -67,6 +65,8 @@ void CheckPointerBeforeUse::wrongUse() {
                 report_error_info(tok);
             } 
         }
+
+        checkContinousNull(scope, vecContinousPointer, vecCPOriginal, vecContinousPointerTok);
     }
 }
 
@@ -76,7 +76,10 @@ void CheckPointerBeforeUse::wrongUse() {
  *     2. a->b()->c()->d
  */
 void CheckPointerBeforeUse::getContinousPointer(const Scope* scope, 
-        std::vector<std::string> &continuous_pointer) {
+        std::vector<std::string> &continuous_pointer,
+        std::vector<std::string> &continuous_pointer_original,
+        std::vector<std::map<int, Token*>> &continuous_pointer_token) {
+
     for (const Token* tok = scope->bodyStart; tok && tok != scope->bodyEnd; tok = tok->next()) {
         if (isSkip(tok)) {
             continue;
@@ -85,38 +88,52 @@ void CheckPointerBeforeUse::getContinousPointer(const Scope* scope,
         // scane from the token to the parent token in the ast.
         // If find ->, then the token before -> should check NULL.
         std::string continousPointerString = "";
+        std::string cpOriginal = "";
+
         const Token* astParentTok = tok->astParent();
+
         while (astParentTok) {
             //tok = astParentTok;
 
             if (astParentTok->originalName() == "->") {
                 if (!continousPointerString.empty()) { // for the a->b->c, skip the a->b check.
+                    //continuous_pointer.insert(std::pair<std::string, int>(continousPointerString, astParentTok->linenr()));
                     continuous_pointer.push_back(continousPointerString);
+                    continuous_pointer_original.push_back(cpOriginal);
+
+                    std::map<int, Token*> mt;
+                    mt[0] = const_cast<Token*>(tok);
+                    mt[1] = astParentTok->previous();
+                    continuous_pointer_token.push_back(mt);
                 }
             }
 
             if (astParentTok->str() == "(") {
                 continousPointerString += (" " + getTokenString(astParentTok, astParentTok->link()));
+                cpOriginal += getTokenString(astParentTok, astParentTok->link());
                 //tok = astParentTok->link();
                 //std::cout << "---" << getTokenString(astParentTok, astParentTok->link()) << std::endl;
             } else if (astParentTok->str() == "."){
                 // 中序遍历
                 if (continousPointerString == "") {
                     continousPointerString += astParentTok->astOperand1()->str();
+                    cpOriginal += astParentTok->astOperand1()->str();
                 }
                 if (!astParentTok->originalName().empty()) {
-                    continousPointerString += (" " + astParentTok->originalName());
+                    continousPointerString += (" " + astParentTok->str());
+                    cpOriginal += astParentTok->originalName();
                 } else {
                     continousPointerString += (" " + astParentTok->str());
+                    cpOriginal += astParentTok->str();
                 }
                 
                 continousPointerString += (" " + astParentTok->astOperand2()->str());
+                cpOriginal += astParentTok->astOperand2()->str();
             }
 
             astParentTok = astParentTok->astParent();
         }
     }
-
 }
 
 std::string CheckPointerBeforeUse::getTokenString(const Token* begin, const Token* end) const {
@@ -196,6 +213,42 @@ bool CheckPointerBeforeUse::isCheckNull(const Scope *scope, const Token *tok) {
     return false;
 }
 
+void CheckPointerBeforeUse::checkContinousNull(const Scope *scope, 
+        std::vector<std::string> &continuous_pointer,
+        std::vector<std::string> &continuous_pointer_original,
+        std::vector<std::map<int, Token*>> &continuous_pointer_token) {
+        int i = 0;
+        for (auto item : continuous_pointer) {
+            const Token *tok = scope->bodyStart;
+            bool isCheck = false;
+            for (; tok && tok != scope->bodyEnd; tok = tok->next()) {
+                if (Token::Match(tok, ("! " + item).c_str()) || 
+                    Token::Match(tok, ("NULL == " + item).c_str()) ||
+                    Token::Match(tok, (item + " == NULL").c_str()) ||
+                    Token::Match(tok, ("nullptr == " + item).c_str()) ||
+                    Token::Match(tok, (item + " == nullptr").c_str()) ||
+                    Token::Match(tok, ("NULL != " + item).c_str()) ||
+                    Token::Match(tok, (item + " != NULL").c_str()) ||
+                    Token::Match(tok, ("nullptr != " + item).c_str()) ||
+                    Token::Match(tok, (item + " != nullptr").c_str())) {
+                    isCheck = true;
+                    break;
+                }
+            }
+
+            if (!isCheck) {
+                std::map<int, Token*> m = continuous_pointer_token[i];
+                reportError(
+                    m[0],
+                    Severity::error,
+                    "not check pointer before use",
+                    continuous_pointer_original[i] + " may cause segment fault",
+                    CWE398,
+                    false);
+            }
+            i++;    
+        }
+}
 
 /** the format of the configure: 
  */
