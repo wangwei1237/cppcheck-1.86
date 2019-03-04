@@ -26,3 +26,5 @@ CheckPointerBeforeUse:
       notSikpFunction:
         - 'test'
         - 'test1'
+  checkNULLFunc:
+    - CHECK_NULL

@@ -62,11 +62,17 @@ private:
     bool is_check_filter() {
         return false;
     }
+
+    /**
+     * E.g.:
+     *     1. a->b->c
+     *     2. a->b()->c()->d
+     */
     void getContinousPointer(const Scope* scope, 
         std::vector<std::string> &continuous_pointer,
         std::vector<std::string> &continuous_pointer_original,
         std::vector<std::map<int, Token*>> &continuous_pointer_token);
-    std::string getTokenString(const Token* begin, const Token* end) const;
+    
     /**
      * Is there a pointer dereference? Everything that should result in
      * a nullpointer dereference error message will result in a true
@@ -77,11 +83,22 @@ private:
      * @return true => there is a dereference
      */
     bool isPointerDeRef(const Token *tok, bool &unknown);
+
     bool isCheckNull(const Scope *scope, const Token *tok);
     void checkContinousNull(const Scope *scope, 
         std::vector<std::string> &continuous_pointer,
         std::vector<std::string> &continuous_pointer_original,
         std::vector<std::map<int, Token*>> &continuous_pointer_token);
+    /**
+     * review the check result strategy. 
+     * This function contains the result filter strategy for the product:
+     * 1. If the pointer's null-check operation done in other function.
+     * 2. If the product has its owner check-null macro, e.g. checknull().
+     * 
+     * @return false=> after review, this token not check-null, must monitor.
+     */
+    bool resultReview();
+    std::string getTokenString(const Token* begin, const Token* end) const;
     std::string classInfo() const override {
         return "test";
     }

@@ -34,6 +34,7 @@ namespace {
     static CheckPointerBeforeUse instance;
 }
 
+
 namespace {
     const std::set<std::string> stl_stream = {
         "fstream", "ifstream", "iostream", "istream",
@@ -42,7 +43,9 @@ namespace {
     };
 }
 
+
 static const CWE CWE398(398U);  // Indicator of Poor Code Quality
+
 
 void CheckPointerBeforeUse::wrongUse() {
     if (is_check_filter()) {
@@ -70,11 +73,7 @@ void CheckPointerBeforeUse::wrongUse() {
     }
 }
 
-/**
- * E.g.:
- *     1. a->b->c
- *     2. a->b()->c()->d
- */
+
 void CheckPointerBeforeUse::getContinousPointer(const Scope* scope, 
         std::vector<std::string> &continuous_pointer,
         std::vector<std::string> &continuous_pointer_original,
@@ -136,6 +135,7 @@ void CheckPointerBeforeUse::getContinousPointer(const Scope* scope,
     }
 }
 
+
 std::string CheckPointerBeforeUse::getTokenString(const Token* begin, const Token* end) const {
     std::string tokString = "";
     if (!begin || !end) {
@@ -149,6 +149,7 @@ std::string CheckPointerBeforeUse::getTokenString(const Token* begin, const Toke
 
     return tokString;
 }
+
 
 bool CheckPointerBeforeUse::isSkip(const Token* tok) {
     bool unknown = false;
@@ -171,6 +172,7 @@ bool CheckPointerBeforeUse::isSkip(const Token* tok) {
     return false;
 }
 
+
 bool CheckPointerBeforeUse::isContainerType(const Token* tok) {
     bool isContainerType = false;
     if (!(tok && tok->variable())) {
@@ -190,6 +192,7 @@ bool CheckPointerBeforeUse::isContainerType(const Token* tok) {
 
     return isContainerType;
 }
+
 
 bool CheckPointerBeforeUse::isCheckNull(const Scope *scope, const Token *tok) {
     const Token *tok1 = tok;
@@ -212,6 +215,7 @@ bool CheckPointerBeforeUse::isCheckNull(const Scope *scope, const Token *tok) {
 
     return false;
 }
+
 
 void CheckPointerBeforeUse::checkContinousNull(const Scope *scope, 
         std::vector<std::string> &continuous_pointer,
@@ -238,6 +242,8 @@ void CheckPointerBeforeUse::checkContinousNull(const Scope *scope,
                 }
             }
 
+            isCheck = resultReview();
+
             if (!isCheck) {
                 reportError(
                     m[0],
@@ -251,6 +257,12 @@ void CheckPointerBeforeUse::checkContinousNull(const Scope *scope,
         }
 }
 
+
+bool CheckPointerBeforeUse::resultReview() {
+    return false;
+}
+
+
 /** the format of the configure: 
  */
 void CheckPointerBeforeUse::loadConf(const YAML::Node &configure) {
@@ -263,6 +275,7 @@ void CheckPointerBeforeUse::loadConf(const YAML::Node &configure) {
         //std::cout << it_ct.as<std::string>() << std::endl;
     }
 }
+
 
 /**
  * Is there a pointer dereference? Everything that should result in
@@ -373,6 +386,7 @@ bool CheckPointerBeforeUse::isPointerDeRef(const Token *tok, bool &unknown)
     return false;
 }
 
+
 void CheckPointerBeforeUse::report_error_info(const Token* tok) {
     reportError(
             tok,
@@ -383,6 +397,7 @@ void CheckPointerBeforeUse::report_error_info(const Token* tok) {
             false
     );
 }
+
 
 void CheckPointerBeforeUse::report_warning_info(const Token* tok) {
     reportError(
